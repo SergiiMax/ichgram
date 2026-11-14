@@ -1,0 +1,12 @@
+node_modules/
+.env*
+!.env.example
+docs/
+CLAUDE.md
+PLAN.md
+.claude/
+dist/
+*.log
+Thumbs.db
+.DS_Store
+coverage/

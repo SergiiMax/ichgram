@@ -1,0 +1,24 @@
+{
+  "name": "ichgram",
+  "version": "1.0.0",
+  "description": "Mini-Instagram — final project IT Career Hub ( in development )",
+  "private": true,
+  "scripts": {
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SergiiMax/ichgram.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/SergiiMax/ichgram/issues"
+  },
+  "homepage": "https://github.com/SergiiMax/ichgram#readme",
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}
