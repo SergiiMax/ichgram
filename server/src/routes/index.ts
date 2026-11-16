@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import mongoose from 'mongoose';
 import { redis } from '../config/redis.js';
+import { authRouter } from './auth.routes.js';
 
 export const apiRouter = Router();
 
@@ -15,3 +16,5 @@ apiRouter.get('/health', (_req, res) => {
     redis: redisStatus,
   });
 });
+
+apiRouter.use('/auth', authRouter);
