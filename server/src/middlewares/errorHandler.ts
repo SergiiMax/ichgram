@@ -3,6 +3,7 @@ import { AppError } from '../utils/AppError.js';
 import { ZodError } from 'zod';
 import { logger } from '../utils/logger.js';
 import { env } from '../config/env.js';
+import mongoose from 'mongoose';
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   if (err instanceof AppError) {
@@ -10,6 +11,14 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
       error: {
         code: err.code,
         message: err.message,
+      },
+    });
+  } else if (err instanceof mongoose.mongo.MongoServerError && err.code === 11000) {
+    const field = Object.keys(err.keyValue ?? {})[0] ?? 'field';
+    res.status(409).json({
+      error: {
+        code: `${field.toUpperCase()}_TAKEN`,
+        message: `${field} is already taken`,
       },
     });
   } else if (err instanceof ZodError) {
