@@ -56,6 +56,10 @@ export async function revokeRefreshToken(userId: string, jti: string) {
 }
 
 export async function revokeAllRefreshTokens(userId: string) {
-  const keys = await redis.keys(`refresh:${userId}:*`);
-  if (keys.length > 0) await redis.del(...keys);
+  const stream = redis.scanStream({ match: `refresh:${userId}:*`, count: 100 });
+  for await (const keys of stream) {
+    if (keys.length > 0) {
+      await redis.del(...keys);
+    }
+  }
 }
