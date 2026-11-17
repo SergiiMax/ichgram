@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+const passwordSchema = z.string().min(8).max(72);
+
 export const registerSchema = z.object({
   email: z.email(),
   username: z
@@ -10,7 +12,7 @@ export const registerSchema = z.object({
     .max(30)
     .regex(/^[a-z0-9._]+$/, 'Only lowercase letters, numbers, dots and underscores'),
   fullName: z.string().trim().min(1).max(50),
-  password: z.string().min(6).max(72),
+  password: passwordSchema,
 });
 
 export const loginSchema = z.object({
