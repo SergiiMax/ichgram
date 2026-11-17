@@ -15,7 +15,8 @@ redis.on('reconnecting', () => {
 });
 
 export async function connectRedis() {
-  await redis.connect();
+  if (redis.status === 'wait') await redis.connect();
+  await redis.ping();
   logger.info('Redis connected');
 }
 
