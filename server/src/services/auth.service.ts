@@ -1,9 +1,11 @@
 import bcrypt from 'bcryptjs';
-import type { RegisterInput } from '../validators/auth.schema.js';
+import type { LoginInput, RegisterInput } from '../validators/auth.schema.js';
 import { User } from '../models/User.js';
 import { AppError } from '../utils/AppError.js';
 import { issueTokens } from './token.service.js';
 import { toPublicUser } from '../utils/dto.js';
+
+const DUMMY_HASH = await bcrypt.hash('dummy-password', 12);
 
 export async function register(data: RegisterInput) {
   if (await User.exists({ email: data.email })) {
@@ -21,6 +23,21 @@ export async function register(data: RegisterInput) {
     fullName: data.fullName,
     passwordHash,
   });
+
+  const tokens = await issueTokens(user.id);
+
+  return { user: toPublicUser(user), ...tokens };
+}
+
+export async function login(data: LoginInput) {
+  const user = await User.findOne({
+    $or: [{ email: data.login }, { username: data.login }],
+  }).select('+passwordHash');
+
+  const isMatch = await bcrypt.compare(data.password, user?.passwordHash ?? DUMMY_HASH);
+  if (!user || !isMatch) {
+    throw new AppError(401, 'INVALID_CREDENTIALS', 'Invalid credentials');
+  }
 
   const tokens = await issueTokens(user.id);
 
