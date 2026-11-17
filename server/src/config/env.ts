@@ -10,6 +10,7 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(32),
   JWT_ACCESS_TTL_SEC: z.coerce.number().int().positive().default(900),
   JWT_REFRESH_TTL_SEC: z.coerce.number().int().positive().default(604800),
+  RESET_TOKEN_TTL_SEC: z.coerce.number().int().positive().default(900),
   MAIL_USER: z.email(),
   MAIL_PASS: z.string().length(16),
 });
