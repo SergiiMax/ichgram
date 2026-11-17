@@ -43,3 +43,11 @@ export async function login(data: LoginInput) {
 
   return { user: toPublicUser(user), ...tokens };
 }
+
+export async function getCurrentUser(userId: string) {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError(401, 'UNAUTHORIZED', 'User not found');
+  }
+  return toPublicUser(user);
+}

@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
 import { randomUUID } from 'node:crypto';
 import { redis } from '../config/redis.js';
+import { AppError } from '../utils/AppError.js';
 
 export function signAccessToken(userId: string) {
   const token = jwt.sign({ sub: userId }, env.JWT_ACCESS_SECRET, {
@@ -23,4 +24,14 @@ export async function issueTokens(userId: string) {
   const accessToken = signAccessToken(userId);
   const refreshToken = await signRefreshToken(userId);
   return { accessToken, refreshToken };
+}
+
+export function verifyAccessToken(token: string) {
+  const payload = jwt.verify(token, env.JWT_ACCESS_SECRET);
+
+  if (typeof payload === 'string' || !payload.sub) {
+    throw new AppError(401, 'INVALID_TOKEN', 'Invalid token');
+  }
+
+  return payload.sub;
 }
