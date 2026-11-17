@@ -4,6 +4,7 @@ import { connectDB, disconnectDB } from './config/db.js';
 import { createServer } from 'node:http';
 import { app } from './app.js';
 import { connectRedis, disconnectRedis } from './config/redis.js';
+import { verifyMailer } from './config/mail.js';
 
 try {
   await connectDB();
@@ -26,6 +27,7 @@ server.on('error', (err) => {
 });
 server.listen(env.PORT, () => {
   logger.info(`Server is running at http://localhost:${env.PORT}`);
+  verifyMailer();
 });
 
 function shutdown(signal: string) {
