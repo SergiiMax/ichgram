@@ -35,3 +35,27 @@ export function verifyAccessToken(token: string) {
 
   return payload.sub;
 }
+
+export function verifyRefreshToken(token: string) {
+  const payload = jwt.verify(token, env.JWT_REFRESH_SECRET);
+
+  if (typeof payload === 'string' || !payload.sub || !payload.jti) {
+    throw new AppError(401, 'INVALID_TOKEN', 'Invalid token');
+  }
+
+  return { userId: payload.sub, jti: payload.jti };
+}
+
+export async function consumeRefreshToken(userId: string, jti: string) {
+  const deleted = await redis.del(`refresh:${userId}:${jti}`);
+  return deleted === 1;
+}
+
+export async function revokeRefreshToken(userId: string, jti: string) {
+  await redis.del(`refresh:${userId}:${jti}`);
+}
+
+export async function revokeAllRefreshTokens(userId: string) {
+  const keys = await redis.keys(`refresh:${userId}:*`);
+  if (keys.length > 0) await redis.del(...keys);
+}

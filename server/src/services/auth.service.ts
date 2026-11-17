@@ -2,7 +2,13 @@ import bcrypt from 'bcryptjs';
 import type { LoginInput, RegisterInput } from '../validators/auth.schema.js';
 import { User } from '../models/User.js';
 import { AppError } from '../utils/AppError.js';
-import { issueTokens } from './token.service.js';
+import {
+  consumeRefreshToken,
+  issueTokens,
+  revokeAllRefreshTokens,
+  revokeRefreshToken,
+  verifyRefreshToken,
+} from './token.service.js';
 import { toPublicUser } from '../utils/dto.js';
 
 const DUMMY_HASH = await bcrypt.hash('dummy-password', 12);
@@ -50,4 +56,37 @@ export async function getCurrentUser(userId: string) {
     throw new AppError(401, 'UNAUTHORIZED', 'User not found');
   }
   return toPublicUser(user);
+}
+
+export async function refresh(refreshToken: string | undefined) {
+  if (!refreshToken) {
+    throw new AppError(401, 'UNAUTHORIZED', 'Refresh token missing');
+  }
+
+  let payload;
+  try {
+    payload = verifyRefreshToken(refreshToken);
+  } catch {
+    throw new AppError(401, 'INVALID_TOKEN', 'Invalid refresh token');
+  }
+
+  const isValid = await consumeRefreshToken(payload.userId, payload.jti);
+
+  if (!isValid) {
+    await revokeAllRefreshTokens(payload.userId);
+    throw new AppError(401, 'SESSION_REVOKED', 'Session is no longer valid');
+  }
+
+  return issueTokens(payload.userId);
+}
+
+export async function logout(refreshToken: string | undefined) {
+  if (!refreshToken) return;
+
+  try {
+    const { userId, jti } = verifyRefreshToken(refreshToken);
+    await revokeRefreshToken(userId, jti);
+  } catch {
+    // токен испорчен или истёк - отзывать нечего, выход всё равно успешен
+  }
 }
