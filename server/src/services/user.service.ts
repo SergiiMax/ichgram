@@ -2,6 +2,7 @@ import { User } from '../models/User.js';
 import { AppError } from '../utils/AppError.js';
 import { toProfile, toPublicUser } from '../utils/dto.js';
 import { logger } from '../utils/logger.js';
+import type { UpdateProfileInput } from '../validators/user.schema.js';
 import { deleteObject, uploadAvatar } from './storage.service.js';
 
 export async function updateAvatar(userId: string, buffer: Buffer) {
@@ -32,4 +33,23 @@ export async function getProfile(username: string, currentUserId: string) {
   }
 
   return toProfile(user, currentUserId);
+}
+
+export async function updateProfile(userId: string, data: UpdateProfileInput) {
+  if (data.username) {
+    const taken = await User.exists({ username: data.username, _id: { $ne: userId } });
+    if (taken) {
+      throw new AppError(409, 'USERNAME_TAKEN', 'Username is already taken');
+    }
+  }
+
+  const user = await User.findByIdAndUpdate(userId, data, {
+    returnDocument: 'after',
+    runValidators: true,
+  });
+  if (!user) {
+    throw new AppError(401, 'UNAUTHORIZED', 'User not found');
+  }
+
+  return toPublicUser(user);
 }

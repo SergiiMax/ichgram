@@ -20,3 +20,8 @@ export const getProfile: RequestHandler = async (req, res) => {
   const user = await userService.getProfile(username, getUserId(req));
   res.json({ user });
 };
+
+export const updateMe: RequestHandler = async (req, res) => {
+  const user = await userService.updateProfile(getUserId(req), req.body);
+  res.json({ user });
+};
