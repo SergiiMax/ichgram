@@ -13,6 +13,11 @@ const envSchema = z.object({
   RESET_TOKEN_TTL_SEC: z.coerce.number().int().positive().default(900),
   MAIL_USER: z.email(),
   MAIL_PASS: z.string().length(16),
+  AWS_REGION: z.string().default('eu-central-1'),
+  AWS_ACCESS_KEY_ID: z.string().min(16),
+  AWS_SECRET_ACCESS_KEY: z.string().min(32),
+  S3_BUCKET: z.string().min(3),
+  S3_PUBLIC_URL: z.url(),
 });
 
 const result = envSchema.safeParse(process.env);

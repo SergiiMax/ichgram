@@ -2,6 +2,7 @@ import { Router } from 'express';
 import mongoose from 'mongoose';
 import { redis } from '../config/redis.js';
 import { authRouter } from './auth.routes.js';
+import { userRouter } from './users.routes.js';
 
 export const apiRouter = Router();
 
@@ -18,3 +19,4 @@ apiRouter.get('/health', (_req, res) => {
 });
 
 apiRouter.use('/auth', authRouter);
+apiRouter.use('/users', userRouter);

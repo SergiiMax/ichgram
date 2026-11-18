@@ -4,6 +4,7 @@ import { ZodError } from 'zod';
 import { logger } from '../utils/logger.js';
 import { env } from '../config/env.js';
 import mongoose from 'mongoose';
+import multer from 'multer';
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   if (err instanceof AppError) {
@@ -30,6 +31,14 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
           field: issue.path.join('.'),
           message: issue.message,
         })),
+      },
+    });
+  } else if (err instanceof multer.MulterError) {
+    const isTooLarge = err.code === 'LIMIT_FILE_SIZE';
+    res.status(isTooLarge ? 413 : 400).json({
+      error: {
+        code: isTooLarge ? 'FILE_TOO_LARGE' : 'UPLOAD_ERROR',
+        message: isTooLarge ? 'File is too large (max 5 MB)' : err.message,
       },
     });
   } else {
