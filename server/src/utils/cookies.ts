@@ -1,5 +1,5 @@
 import { env } from '../config/env.js';
-import type { Response, CookieOptions } from 'express';
+import type { Response, CookieOptions, Request } from 'express';
 
 export const ACCESS_COOKIE = 'accessToken';
 export const REFRESH_COOKIE = 'refreshToken';
@@ -29,4 +29,9 @@ export function setAuthCookies(
 export function clearAuthCookies(res: Response) {
   res.clearCookie(ACCESS_COOKIE, { ...baseOptions, path: '/' });
   res.clearCookie(REFRESH_COOKIE, { ...baseOptions, path: '/api/v1/auth' });
+}
+
+export function getCookie(req: Request, name: string): string | undefined {
+  const value: unknown = req.cookies?.[name];
+  return typeof value === 'string' ? value : undefined;
 }

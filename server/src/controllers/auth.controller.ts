@@ -1,6 +1,7 @@
 import type { RequestHandler } from 'express';
 import * as authService from '../services/auth.service.js';
-import { clearAuthCookies, REFRESH_COOKIE, setAuthCookies } from '../utils/cookies.js';
+import { clearAuthCookies, getCookie, REFRESH_COOKIE, setAuthCookies } from '../utils/cookies.js';
+import { getUserId } from '../middlewares/auth.js';
 
 export const register: RequestHandler = async (req, res) => {
   const result = await authService.register(req.body);
@@ -19,18 +20,18 @@ export const login: RequestHandler = async (req, res) => {
 };
 
 export const me: RequestHandler = async (req, res) => {
-  const user = await authService.getCurrentUser(req.user!.id);
+  const user = await authService.getCurrentUser(getUserId(req));
   res.json({ user });
 };
 
 export const refresh: RequestHandler = async (req, res) => {
-  const tokens = await authService.refresh(req.cookies[REFRESH_COOKIE]);
+  const tokens = await authService.refresh(getCookie(req, REFRESH_COOKIE));
   setAuthCookies(res, tokens);
   res.status(204).end();
 };
 
 export const logout: RequestHandler = async (req, res) => {
-  await authService.logout(req.cookies[REFRESH_COOKIE]);
+  await authService.logout(getCookie(req, REFRESH_COOKIE));
   clearAuthCookies(res);
   res.status(204).end();
 };

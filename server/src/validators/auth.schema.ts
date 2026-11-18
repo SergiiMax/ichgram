@@ -16,9 +16,23 @@ export const registerSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  login: z.string().trim().toLowerCase().min(1),
+  login: z.string().trim().toLowerCase().min(3),
   password: z.string().min(1),
+});
+
+export const forgotPasswordSchema = z.object({
+  login: z.string().trim().toLowerCase().min(3),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z
+    .string()
+    .length(64)
+    .regex(/^[0-9a-f]+$/),
+  password: passwordSchema,
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

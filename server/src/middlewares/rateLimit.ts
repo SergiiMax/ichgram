@@ -1,5 +1,5 @@
 import rateLimit from 'express-rate-limit';
-import { RedisStore } from 'rate-limit-redis';
+import { RedisStore, type RedisReply } from 'rate-limit-redis';
 import { redis } from '../config/redis.js';
 import { AppError } from '../utils/AppError.js';
 
@@ -11,7 +11,8 @@ function createLimiter(prefix: string, windowMs: number, limit: number) {
     legacyHeaders: false,
     store: new RedisStore({
       prefix: `rl:${prefix}:`,
-      sendCommand: (command: string, ...args: string[]) => redis.call(command, ...args) as never,
+      sendCommand: (command: string, ...args: string[]) =>
+        redis.call(command, ...args) as Promise<RedisReply>,
     }),
     handler: (_req, _res, next) => {
       next(new AppError(429, 'TOO_MANY_REQUESTS', 'Too many attempts, try again later'));
