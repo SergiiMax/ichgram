@@ -1,9 +1,10 @@
 import { User } from '../models/User.js';
 import { AppError } from '../utils/AppError.js';
-import { toProfile, toPublicUser } from '../utils/dto.js';
+import { toProfile, toPublicUser, toUserPreview } from '../utils/dto.js';
 import { logger } from '../utils/logger.js';
 import type { UpdateProfileInput } from '../validators/user.schema.js';
 import { deleteObject, uploadAvatar } from './storage.service.js';
+import lodash from 'lodash';
 
 export async function updateAvatar(userId: string, buffer: Buffer) {
   const user = await User.findById(userId);
@@ -52,4 +53,18 @@ export async function updateProfile(userId: string, data: UpdateProfileInput) {
   }
 
   return toPublicUser(user);
+}
+
+export async function searchUsers(query: string, currentUserId: string) {
+  const prefix = lodash.escapeRegExp(query);
+
+  const users = await User.find({
+    _id: { $ne: currentUserId },
+    $or: [
+      { username: { $regex: `^${prefix.toLowerCase()}` } },
+      { fullName: { $regex: `^${prefix}`, $options: 'i' } },
+    ],
+  }).limit(20);
+
+  return users.map(toUserPreview);
 }

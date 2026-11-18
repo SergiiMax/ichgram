@@ -18,3 +18,12 @@ export function toProfile(user: InstanceType<typeof User>, currentUserId: string
     isMe: user.id === currentUserId,
   };
 }
+
+export function toUserPreview(user: InstanceType<typeof User>) {
+  return {
+    id: user.id,
+    username: user.username,
+    fullName: user.fullName,
+    avatarUrl: user.avatarKey ? getPublicUrl(user.avatarKey) : null,
+  };
+}

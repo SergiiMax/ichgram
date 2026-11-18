@@ -15,4 +15,8 @@ export const updateProfileSchema = z
     message: 'At least one field is required',
   });
 
+export const searchQuerySchema = z.object({
+  q: z.string().trim().min(1).max(30),
+});
+
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

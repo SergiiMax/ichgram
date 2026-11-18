@@ -2,6 +2,7 @@ import type { RequestHandler } from 'express';
 import { AppError } from '../utils/AppError.js';
 import * as userService from '../services/user.service.js';
 import { getUserId } from '../middlewares/auth.js';
+import { searchQuerySchema } from '../validators/user.schema.js';
 
 export const updateAvatar: RequestHandler = async (req, res) => {
   if (!req.file) {
@@ -24,4 +25,10 @@ export const getProfile: RequestHandler = async (req, res) => {
 export const updateMe: RequestHandler = async (req, res) => {
   const user = await userService.updateProfile(getUserId(req), req.body);
   res.json({ user });
+};
+
+export const searchUsers: RequestHandler = async (req, res) => {
+  const { q } = searchQuerySchema.parse(req.query);
+  const users = await userService.searchUsers(q, getUserId(req));
+  res.json({ users });
 };
