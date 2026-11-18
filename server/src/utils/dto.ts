@@ -5,7 +5,17 @@ import { getPublicUrl } from '../services/storage.service.js';
 export function toPublicUser(user: InstanceType<typeof User>) {
   return {
     id: user.id,
-    ...lodash.pick(user, ['email', 'username', 'fullName', 'bio', 'website', 'createdAt']),
+    ...lodash.pick(user, [
+      'email',
+      'username',
+      'fullName',
+      'bio',
+      'website',
+      'postsCount',
+      'followersCount',
+      'followingCount',
+      'createdAt',
+    ]),
     avatarUrl: user.avatarKey ? getPublicUrl(user.avatarKey) : null,
   };
 }
@@ -13,7 +23,16 @@ export function toPublicUser(user: InstanceType<typeof User>) {
 export function toProfile(user: InstanceType<typeof User>, currentUserId: string) {
   return {
     id: user.id,
-    ...lodash.pick(user, ['username', 'fullName', 'bio', 'website', 'createdAt']),
+    ...lodash.pick(user, [
+      'username',
+      'fullName',
+      'bio',
+      'website',
+      'postsCount',
+      'followersCount',
+      'followingCount',
+      'createdAt',
+    ]),
     avatarUrl: user.avatarKey ? getPublicUrl(user.avatarKey) : null,
     isMe: user.id === currentUserId,
   };
