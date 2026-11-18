@@ -22,3 +22,4 @@ function createLimiter(prefix: string, windowMs: number, limit: number) {
 
 export const loginLimiter = createLimiter('login', 60_000, 5);
 export const registerLimiter = createLimiter('register', 60 * 60_000, 10);
+export const forgotPasswordLimiter = createLimiter('forgot', 15 * 60_000, 3);

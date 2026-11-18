@@ -35,3 +35,14 @@ export const logout: RequestHandler = async (req, res) => {
   clearAuthCookies(res);
   res.status(204).end();
 };
+
+export const forgotPassword: RequestHandler = async (req, res) => {
+  await authService.forgotPassword(req.body);
+  res.json({ message: 'If an account with these details exists, we have sent a reset link.' });
+};
+
+export const resetPassword: RequestHandler = async (req, res) => {
+  await authService.resetPassword(req.body);
+  clearAuthCookies(res);
+  res.json({ message: 'Password has been reset. Please log in with your new password.' });
+};

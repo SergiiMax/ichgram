@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash, randomBytes } from 'node:crypto';
 import { redis } from '../config/redis.js';
 import { AppError } from '../utils/AppError.js';
 
@@ -62,4 +62,18 @@ export async function revokeAllRefreshTokens(userId: string) {
       await redis.del(...keys);
     }
   }
+}
+
+function hashToken(token: string) {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+export async function createResetToken(userId: string) {
+  const token = randomBytes(32).toString('hex');
+  await redis.set(`reset:${hashToken(token)}`, userId, 'EX', env.RESET_TOKEN_TTL_SEC);
+  return token;
+}
+
+export async function consumeResetToken(token: string) {
+  return await redis.getdel(`reset:${hashToken(token)}`);
 }

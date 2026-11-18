@@ -1,15 +1,25 @@
 import bcrypt from 'bcryptjs';
-import type { LoginInput, RegisterInput } from '../validators/auth.schema.js';
+import type {
+  ForgotPasswordInput,
+  LoginInput,
+  RegisterInput,
+  ResetPasswordInput,
+} from '../validators/auth.schema.js';
 import { User } from '../models/User.js';
 import { AppError } from '../utils/AppError.js';
 import {
   consumeRefreshToken,
+  consumeResetToken,
+  createResetToken,
   issueTokens,
   revokeAllRefreshTokens,
   revokeRefreshToken,
   verifyRefreshToken,
 } from './token.service.js';
 import { toPublicUser } from '../utils/dto.js';
+import { env } from '../config/env.js';
+import { sendPasswordResetEmail } from './mail.service.js';
+import { logger } from '../utils/logger.js';
 
 const DUMMY_HASH = await bcrypt.hash('dummy-password', 12);
 
@@ -89,4 +99,31 @@ export async function logout(refreshToken: string | undefined) {
   } catch {
     // токен испорчен или истёк - отзывать нечего, выход всё равно успешен
   }
+}
+
+export async function forgotPassword(data: ForgotPasswordInput) {
+  const user = await User.findOne({ $or: [{ email: data.login }, { username: data.login }] });
+  if (!user) return;
+  const token = await createResetToken(user.id);
+  const resetUrl = `${env.CLIENT_URL}/reset-password/${token}`;
+
+  void sendPasswordResetEmail(user.email, resetUrl).catch((err) => {
+    logger.error({ err }, 'Failed to send password reset email');
+  });
+}
+
+export async function resetPassword(data: ResetPasswordInput) {
+  const userId = await consumeResetToken(data.token);
+
+  if (!userId) {
+    throw new AppError(400, 'INVALID_RESET_TOKEN', 'Reset link is invalid or has expired');
+  }
+
+  const passwordHash = await bcrypt.hash(data.password, 12);
+  const result = await User.updateOne({ _id: userId }, { passwordHash });
+  if (result.matchedCount === 0) {
+    throw new AppError(400, 'INVALID_RESET_TOKEN', 'Reset link is invalid or has expired');
+  }
+
+  await revokeAllRefreshTokens(userId);
 }
