@@ -9,3 +9,12 @@ export function toPublicUser(user: InstanceType<typeof User>) {
     avatarUrl: user.avatarKey ? getPublicUrl(user.avatarKey) : null,
   };
 }
+
+export function toProfile(user: InstanceType<typeof User>, currentUserId: string) {
+  return {
+    id: user.id,
+    ...lodash.pick(user, ['username', 'fullName', 'bio', 'website', 'createdAt']),
+    avatarUrl: user.avatarKey ? getPublicUrl(user.avatarKey) : null,
+    isMe: user.id === currentUserId,
+  };
+}

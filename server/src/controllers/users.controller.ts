@@ -10,3 +10,13 @@ export const updateAvatar: RequestHandler = async (req, res) => {
   const user = await userService.updateAvatar(getUserId(req), req.file.buffer);
   res.json({ user });
 };
+
+export const getProfile: RequestHandler = async (req, res) => {
+  const { username } = req.params;
+  if (typeof username !== 'string') {
+    throw new AppError(400, 'INVALID_USERNAME', 'Invalid username');
+  }
+
+  const user = await userService.getProfile(username, getUserId(req));
+  res.json({ user });
+};

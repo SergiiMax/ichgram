@@ -1,6 +1,6 @@
 import { User } from '../models/User.js';
 import { AppError } from '../utils/AppError.js';
-import { toPublicUser } from '../utils/dto.js';
+import { toProfile, toPublicUser } from '../utils/dto.js';
 import { logger } from '../utils/logger.js';
 import { deleteObject, uploadAvatar } from './storage.service.js';
 
@@ -22,4 +22,14 @@ export async function updateAvatar(userId: string, buffer: Buffer) {
     });
   }
   return toPublicUser(user);
+}
+
+export async function getProfile(username: string, currentUserId: string) {
+  const user = await User.findOne({ username: username.toLowerCase() });
+
+  if (!user) {
+    throw new AppError(404, 'USER_NOT_FOUND', 'User not found');
+  }
+
+  return toProfile(user, currentUserId);
 }
