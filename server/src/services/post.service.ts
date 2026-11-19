@@ -6,6 +6,8 @@ import { toPost } from '../utils/dto.js';
 import { logger } from '../utils/logger.js';
 import type { CreatePostInput, UpdatePostInput } from '../validators/post.schema.js';
 import { deletePostImage, uploadPostImage } from './storage.service.js';
+import type { PaginationQuery } from '../validators/common.schema.js';
+import { toPage } from '../utils/pagination.js';
 
 export async function createPost(authorId: string, buffer: Buffer, data: CreatePostInput) {
   const image = await uploadPostImage(buffer);
@@ -97,4 +99,19 @@ export async function updatePost(
     });
   }
   return toPost(post, post.author);
+}
+
+export async function getUserPosts(username: string, { cursor, limit }: PaginationQuery) {
+  const user = await User.findOne({ username: username.toLowerCase() });
+  if (!user) {
+    throw new AppError(404, 'USER_NOT_FOUND', 'User not found');
+  }
+
+  const filter = cursor ? { author: user.id, _id: { $lt: cursor } } : { author: user.id };
+  const posts = await Post.find(filter)
+    .sort({ _id: -1 })
+    .limit(limit + 1);
+
+  const page = toPage(posts, limit);
+  return { posts: page.items.map((post) => toPost(post, user)), nextCursor: page.nextCursor };
 }

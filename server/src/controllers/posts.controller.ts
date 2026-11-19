@@ -2,6 +2,7 @@ import type { RequestHandler } from 'express';
 import { AppError } from '../utils/AppError.js';
 import * as postService from '../services/post.service.js';
 import { getUserId } from '../middlewares/auth.js';
+import { paginationQuerySchema } from '../validators/common.schema.js';
 
 export const createPost: RequestHandler = async (req, res) => {
   if (!req.file) {
@@ -29,4 +30,10 @@ export const updatePost: RequestHandler<{ id: string }> = async (req, res) => {
     req.file?.buffer,
   );
   res.json({ post });
+};
+
+export const getUserPosts: RequestHandler<{ username: string }> = async (req, res) => {
+  const query = paginationQuerySchema.parse(req.query);
+  const result = await postService.getUserPosts(req.params.username, query);
+  res.json(result);
 };
