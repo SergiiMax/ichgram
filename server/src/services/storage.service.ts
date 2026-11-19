@@ -112,3 +112,11 @@ export async function uploadPostImage(buffer: Buffer) {
 export async function deletePostImage(key: string) {
   await Promise.all(POST_WIDTHS.map((width) => deleteObject(`${key}/${width}.webp`)));
 }
+
+export function getPostImageUrls(key: string) {
+  return {
+    small: getPublicUrl(`${key}/480.webp`),
+    medium: getPublicUrl(`${key}/1080.webp`),
+    large: getPublicUrl(`${key}/1440.webp`),
+  };
+}

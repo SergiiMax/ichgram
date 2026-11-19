@@ -1,0 +1,12 @@
+import type { RequestHandler } from 'express';
+import { AppError } from '../utils/AppError.js';
+import * as postService from '../services/post.service.js';
+import { getUserId } from '../middlewares/auth.js';
+
+export const createPost: RequestHandler = async (req, res) => {
+  if (!req.file) {
+    throw new AppError(400, 'FILE_REQUIRED', 'Image file is required');
+  }
+  const post = await postService.createPost(getUserId(req), req.file.buffer, req.body);
+  res.status(201).json({ post });
+};

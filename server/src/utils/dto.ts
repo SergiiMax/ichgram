@@ -1,6 +1,7 @@
 import lodash from 'lodash';
 import { User } from '../models/User.js';
-import { getPublicUrl } from '../services/storage.service.js';
+import { getPostImageUrls, getPublicUrl } from '../services/storage.service.js';
+import type { Post } from '../models/Post.js';
 
 export function toPublicUser(user: InstanceType<typeof User>) {
   return {
@@ -44,5 +45,22 @@ export function toUserPreview(user: InstanceType<typeof User>) {
     username: user.username,
     fullName: user.fullName,
     avatarUrl: user.avatarKey ? getPublicUrl(user.avatarKey) : null,
+  };
+}
+
+export function toPost(post: InstanceType<typeof Post>, author: InstanceType<typeof User>) {
+  return {
+    id: post.id,
+    caption: post.caption,
+    image: {
+      ...getPostImageUrls(post.image.key),
+      width: post.image.width,
+      height: post.image.height,
+      dominantColor: post.image.dominantColor,
+    },
+    likesCount: post.likesCount,
+    commentsCount: post.commentsCount,
+    createdAt: post.createdAt,
+    author: toUserPreview(author),
   };
 }

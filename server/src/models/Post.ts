@@ -1,5 +1,15 @@
 import mongoose from 'mongoose';
 
+const imageSchema = new mongoose.Schema(
+  {
+    key: { type: String, required: true },
+    width: { type: Number, required: true },
+    height: { type: Number, required: true },
+    dominantColor: { type: String, required: true },
+  },
+  { _id: false },
+);
+
 const postSchema = new mongoose.Schema(
   {
     author: {
@@ -8,22 +18,8 @@ const postSchema = new mongoose.Schema(
       required: true,
     },
     image: {
-      key: {
-        type: String,
-        required: true,
-      },
-      width: {
-        type: Number,
-        required: true,
-      },
-      height: {
-        type: Number,
-        required: true,
-      },
-      dominantColor: {
-        type: String,
-        required: true,
-      },
+      type: imageSchema,
+      required: true,
     },
     caption: {
       type: String,
