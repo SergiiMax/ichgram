@@ -170,3 +170,9 @@ export async function getExplore(viewerId: string, { limit, exclude }: ExploreQu
 
   return { posts: ordered.map((post) => toPost(post, post.author, liked.has(post.id))) };
 }
+
+export async function assertPostExists(postId: string) {
+  if (!mongoose.isValidObjectId(postId) || !(await Post.exists({ _id: postId }))) {
+    throw new AppError(404, 'POST_NOT_FOUND', 'Post not found');
+  }
+}

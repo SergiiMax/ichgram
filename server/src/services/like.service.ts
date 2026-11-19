@@ -1,13 +1,7 @@
 import mongoose from 'mongoose';
 import { Post } from '../models/Post.js';
-import { AppError } from '../utils/AppError.js';
 import { Like } from '../models/Like.js';
-
-async function assertPostExists(postId: string) {
-  if (!mongoose.isValidObjectId(postId) || !(await Post.exists({ _id: postId }))) {
-    throw new AppError(404, 'POST_NOT_FOUND', 'Post not found');
-  }
-}
+import { assertPostExists } from './post.service.js';
 
 function isDuplicateKeyError(err: unknown) {
   return err instanceof mongoose.mongo.MongoServerError && err.code === 11000;

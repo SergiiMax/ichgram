@@ -4,6 +4,7 @@ import { redis } from '../config/redis.js';
 import { authRouter } from './auth.routes.js';
 import { userRouter } from './users.routes.js';
 import { postsRouter } from './posts.routes.js';
+import { commentRouter } from './comments.routes.js';
 
 export const apiRouter = Router();
 
@@ -22,3 +23,4 @@ apiRouter.get('/health', (_req, res) => {
 apiRouter.use('/auth', authRouter);
 apiRouter.use('/users', userRouter);
 apiRouter.use('/posts', postsRouter);
+apiRouter.use('/comments', commentRouter);

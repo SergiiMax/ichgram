@@ -12,6 +12,8 @@ import {
   updatePost,
 } from '../controllers/posts.controller.js';
 import { likePost, unlikePost } from '../controllers/likes.controller.js';
+import { createCommentSchema } from '../validators/comment.schema.js';
+import { addComment, getComments } from '../controllers/comments.controller.js';
 
 export const postsRouter = Router();
 
@@ -35,3 +37,5 @@ postsRouter.patch(
 );
 postsRouter.post('/:id/like', requireAuth, likePost);
 postsRouter.delete('/:id/like', requireAuth, unlikePost);
+postsRouter.post('/:id/comments', requireAuth, validate(createCommentSchema), addComment);
+postsRouter.get('/:id/comments', requireAuth, getComments);

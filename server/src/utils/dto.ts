@@ -2,6 +2,7 @@ import lodash from 'lodash';
 import { User } from '../models/User.js';
 import { getPostImageUrls, getPublicUrl } from '../services/storage.service.js';
 import type { Post } from '../models/Post.js';
+import type { Comment } from '../models/Comment.js';
 
 export function toPublicUser(user: InstanceType<typeof User>) {
   return {
@@ -68,5 +69,18 @@ export function toPost(post: PostFields, author: InstanceType<typeof User>, isLi
     createdAt: post.createdAt,
     author: toUserPreview(author),
     isLiked,
+  };
+}
+
+export function toComment(
+  comment: Pick<InstanceType<typeof Comment>, 'id' | 'text' | 'likesCount' | 'createdAt'>,
+  author: InstanceType<typeof User>,
+) {
+  return {
+    id: comment.id,
+    text: comment.text,
+    likesCount: comment.likesCount,
+    createdAt: comment.createdAt,
+    author: toUserPreview(author),
   };
 }
