@@ -48,7 +48,12 @@ export function toUserPreview(user: InstanceType<typeof User>) {
   };
 }
 
-export function toPost(post: InstanceType<typeof Post>, author: InstanceType<typeof User>) {
+type PostFields = Pick<
+  InstanceType<typeof Post>,
+  'id' | 'caption' | 'image' | 'likesCount' | 'commentsCount' | 'createdAt'
+>;
+
+export function toPost(post: PostFields, author: InstanceType<typeof User>) {
   return {
     id: post.id,
     caption: post.caption,

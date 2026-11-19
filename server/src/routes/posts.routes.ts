@@ -3,7 +3,7 @@ import { requireAuth } from '../middlewares/auth.js';
 import { imageUpload } from '../middlewares/upload.js';
 import { validate } from '../middlewares/validate.js';
 import { createPostSchema } from '../validators/post.schema.js';
-import { createPost } from '../controllers/posts.controller.js';
+import { createPost, getPost } from '../controllers/posts.controller.js';
 
 export const postsRouter = Router();
 
@@ -14,3 +14,4 @@ postsRouter.post(
   validate(createPostSchema),
   createPost,
 );
+postsRouter.get('/:id', requireAuth, getPost);

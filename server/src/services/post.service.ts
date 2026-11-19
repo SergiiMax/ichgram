@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Post } from '../models/Post.js';
 import { User } from '../models/User.js';
 import { AppError } from '../utils/AppError.js';
@@ -30,4 +31,22 @@ export async function createPost(authorId: string, buffer: Buffer, data: CreateP
   }
 
   return toPost(post, author);
+}
+
+async function findPostOrThrow(postId: string) {
+  if (!mongoose.isValidObjectId(postId)) {
+    throw new AppError(404, 'POST_NOT_FOUND', 'Post not found');
+  }
+  const post = await Post.findById(postId).populate<{ author: InstanceType<typeof User> }>(
+    'author',
+  );
+  if (!post) {
+    throw new AppError(404, 'POST_NOT_FOUND', 'Post not found');
+  }
+  return post;
+}
+
+export async function getPost(postId: string) {
+  const post = await findPostOrThrow(postId);
+  return toPost(post, post.author);
 }

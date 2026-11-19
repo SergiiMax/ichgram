@@ -10,3 +10,8 @@ export const createPost: RequestHandler = async (req, res) => {
   const post = await postService.createPost(getUserId(req), req.file.buffer, req.body);
   res.status(201).json({ post });
 };
+
+export const getPost: RequestHandler<{ id: string }> = async (req, res) => {
+  const post = await postService.getPost(req.params.id);
+  res.json({ post });
+};
