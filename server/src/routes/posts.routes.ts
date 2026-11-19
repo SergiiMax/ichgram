@@ -2,8 +2,8 @@ import { Router } from 'express';
 import { requireAuth } from '../middlewares/auth.js';
 import { imageUpload } from '../middlewares/upload.js';
 import { validate } from '../middlewares/validate.js';
-import { createPostSchema } from '../validators/post.schema.js';
-import { createPost, getPost } from '../controllers/posts.controller.js';
+import { createPostSchema, updatePostSchema } from '../validators/post.schema.js';
+import { createPost, deletePost, getPost, updatePost } from '../controllers/posts.controller.js';
 
 export const postsRouter = Router();
 
@@ -15,3 +15,11 @@ postsRouter.post(
   createPost,
 );
 postsRouter.get('/:id', requireAuth, getPost);
+postsRouter.delete('/:id', requireAuth, deletePost);
+postsRouter.patch(
+  '/:id',
+  requireAuth,
+  imageUpload.single('image'),
+  validate(updatePostSchema),
+  updatePost,
+);

@@ -15,3 +15,18 @@ export const getPost: RequestHandler<{ id: string }> = async (req, res) => {
   const post = await postService.getPost(req.params.id);
   res.json({ post });
 };
+
+export const deletePost: RequestHandler<{ id: string }> = async (req, res) => {
+  await postService.deletePost(req.params.id, getUserId(req));
+  res.status(204).end();
+};
+
+export const updatePost: RequestHandler<{ id: string }> = async (req, res) => {
+  const post = await postService.updatePost(
+    req.params.id,
+    getUserId(req),
+    req.body,
+    req.file?.buffer,
+  );
+  res.json({ post });
+};
