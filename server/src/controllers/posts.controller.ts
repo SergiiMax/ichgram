@@ -37,3 +37,9 @@ export const getUserPosts: RequestHandler<{ username: string }> = async (req, re
   const result = await postService.getUserPosts(req.params.username, query);
   res.json(result);
 };
+
+export const getFeed: RequestHandler = async (req, res) => {
+  const query = paginationQuerySchema.parse(req.query);
+  const result = await postService.getFeed(query);
+  res.json(result);
+};

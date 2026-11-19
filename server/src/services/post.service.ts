@@ -115,3 +115,18 @@ export async function getUserPosts(username: string, { cursor, limit }: Paginati
   const page = toPage(posts, limit);
   return { posts: page.items.map((post) => toPost(post, user)), nextCursor: page.nextCursor };
 }
+
+export async function getFeed({ cursor, limit }: PaginationQuery) {
+  const filter = cursor ? { _id: { $lt: cursor } } : {};
+
+  const posts = await Post.find(filter)
+    .sort({ _id: -1 })
+    .limit(limit + 1)
+    .populate<{ author: InstanceType<typeof User> }>('author');
+
+  const page = toPage(posts, limit);
+  return {
+    posts: page.items.map((post) => toPost(post, post.author)),
+    nextCursor: page.nextCursor,
+  };
+}
