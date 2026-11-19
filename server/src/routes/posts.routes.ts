@@ -6,10 +6,12 @@ import { createPostSchema, updatePostSchema } from '../validators/post.schema.js
 import {
   createPost,
   deletePost,
+  getExplore,
   getFeed,
   getPost,
   updatePost,
 } from '../controllers/posts.controller.js';
+import { likePost, unlikePost } from '../controllers/likes.controller.js';
 
 export const postsRouter = Router();
 
@@ -21,6 +23,7 @@ postsRouter.post(
   createPost,
 );
 postsRouter.get('/feed', requireAuth, getFeed);
+postsRouter.get('/explore', requireAuth, getExplore);
 postsRouter.get('/:id', requireAuth, getPost);
 postsRouter.delete('/:id', requireAuth, deletePost);
 postsRouter.patch(
@@ -30,3 +33,5 @@ postsRouter.patch(
   validate(updatePostSchema),
   updatePost,
 );
+postsRouter.post('/:id/like', requireAuth, likePost);
+postsRouter.delete('/:id/like', requireAuth, unlikePost);

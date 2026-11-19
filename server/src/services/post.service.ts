@@ -4,7 +4,7 @@ import { User } from '../models/User.js';
 import { AppError } from '../utils/AppError.js';
 import { toPost } from '../utils/dto.js';
 import { logger } from '../utils/logger.js';
-import type { CreatePostInput, UpdatePostInput } from '../validators/post.schema.js';
+import type { CreatePostInput, ExploreQuery, UpdatePostInput } from '../validators/post.schema.js';
 import { deletePostImage, uploadPostImage } from './storage.service.js';
 import type { PaginationQuery } from '../validators/common.schema.js';
 import { toPage } from '../utils/pagination.js';
@@ -129,4 +129,24 @@ export async function getFeed({ cursor, limit }: PaginationQuery) {
     posts: page.items.map((post) => toPost(post, post.author)),
     nextCursor: page.nextCursor,
   };
+}
+
+export async function getExplore({ limit, exclude }: ExploreQuery) {
+  const excludeIds = exclude.map((id) => new mongoose.Types.ObjectId(id));
+
+  const sampled = await Post.aggregate<{ _id: mongoose.Types.ObjectId }>([
+    { $match: { _id: { $nin: excludeIds } } },
+    { $sample: { size: limit } },
+    { $project: { _id: 1 } },
+  ]);
+  const ids = sampled.map((doc) => doc._id);
+
+  const posts = await Post.find({ _id: { $in: ids } }).populate<{
+    author: InstanceType<typeof User>;
+  }>('author');
+
+  const byId = new Map(posts.map((post) => [post.id, post]));
+  const ordered = ids.map((id) => byId.get(id.toString())).filter((post) => post !== undefined);
+
+  return { posts: ordered.map((post) => toPost(post, post.author)) };
 }
