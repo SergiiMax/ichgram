@@ -8,6 +8,7 @@ import type { CreatePostInput, ExploreQuery, UpdatePostInput } from '../validato
 import { deletePostImage, uploadPostImage } from './storage.service.js';
 import type { PaginationQuery } from '../validators/common.schema.js';
 import { toPage } from '../utils/pagination.js';
+import { getLikedPostIds, isPostLikedBy } from './like.service.js';
 
 export async function createPost(authorId: string, buffer: Buffer, data: CreatePostInput) {
   const image = await uploadPostImage(buffer);
@@ -48,9 +49,9 @@ async function findPostOrThrow(postId: string) {
   return post;
 }
 
-export async function getPost(postId: string) {
+export async function getPost(postId: string, viewerId: string) {
   const post = await findPostOrThrow(postId);
-  return toPost(post, post.author);
+  return toPost(post, post.author, await isPostLikedBy(viewerId, post.id));
 }
 
 function assertAuthor(post: { author: { id: string } }, userId: string) {
@@ -98,10 +99,14 @@ export async function updatePost(
       logger.warn({ err, key: oldKey }, 'Failed to delete old post image');
     });
   }
-  return toPost(post, post.author);
+  return toPost(post, post.author, await isPostLikedBy(userId, post.id));
 }
 
-export async function getUserPosts(username: string, { cursor, limit }: PaginationQuery) {
+export async function getUserPosts(
+  username: string,
+  viewerId: string,
+  { cursor, limit }: PaginationQuery,
+) {
   const user = await User.findOne({ username: username.toLowerCase() });
   if (!user) {
     throw new AppError(404, 'USER_NOT_FOUND', 'User not found');
@@ -113,10 +118,17 @@ export async function getUserPosts(username: string, { cursor, limit }: Paginati
     .limit(limit + 1);
 
   const page = toPage(posts, limit);
-  return { posts: page.items.map((post) => toPost(post, user)), nextCursor: page.nextCursor };
+  const liked = await getLikedPostIds(
+    viewerId,
+    page.items.map((post) => post.id),
+  );
+  return {
+    posts: page.items.map((post) => toPost(post, user, liked.has(post.id))),
+    nextCursor: page.nextCursor,
+  };
 }
 
-export async function getFeed({ cursor, limit }: PaginationQuery) {
+export async function getFeed(viewerId: string, { cursor, limit }: PaginationQuery) {
   const filter = cursor ? { _id: { $lt: cursor } } : {};
 
   const posts = await Post.find(filter)
@@ -125,13 +137,17 @@ export async function getFeed({ cursor, limit }: PaginationQuery) {
     .populate<{ author: InstanceType<typeof User> }>('author');
 
   const page = toPage(posts, limit);
+  const liked = await getLikedPostIds(
+    viewerId,
+    page.items.map((post) => post.id),
+  );
   return {
-    posts: page.items.map((post) => toPost(post, post.author)),
+    posts: page.items.map((post) => toPost(post, post.author, liked.has(post.id))),
     nextCursor: page.nextCursor,
   };
 }
 
-export async function getExplore({ limit, exclude }: ExploreQuery) {
+export async function getExplore(viewerId: string, { limit, exclude }: ExploreQuery) {
   const excludeIds = exclude.map((id) => new mongoose.Types.ObjectId(id));
 
   const sampled = await Post.aggregate<{ _id: mongoose.Types.ObjectId }>([
@@ -147,6 +163,10 @@ export async function getExplore({ limit, exclude }: ExploreQuery) {
 
   const byId = new Map(posts.map((post) => [post.id, post]));
   const ordered = ids.map((id) => byId.get(id.toString())).filter((post) => post !== undefined);
+  const liked = await getLikedPostIds(
+    viewerId,
+    ordered.map((order) => order.id),
+  );
 
-  return { posts: ordered.map((post) => toPost(post, post.author)) };
+  return { posts: ordered.map((post) => toPost(post, post.author, liked.has(post.id))) };
 }

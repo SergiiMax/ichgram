@@ -49,3 +49,12 @@ export async function unlikePost(postId: string, userId: string) {
 
   return { liked: false, likesCount: post?.likesCount ?? 0 };
 }
+
+export async function getLikedPostIds(userId: string, postIds: string[]) {
+  const likes = await Like.find({ user: userId, post: { $in: postIds } }).select('post');
+  return new Set(likes.map((like) => like.post.toString()));
+}
+
+export async function isPostLikedBy(userId: string, postId: string) {
+  return Boolean(await Like.exists({ user: userId, post: postId }));
+}

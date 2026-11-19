@@ -14,7 +14,7 @@ export const createPost: RequestHandler = async (req, res) => {
 };
 
 export const getPost: RequestHandler<{ id: string }> = async (req, res) => {
-  const post = await postService.getPost(req.params.id);
+  const post = await postService.getPost(req.params.id, getUserId(req));
   res.json({ post });
 };
 
@@ -35,17 +35,17 @@ export const updatePost: RequestHandler<{ id: string }> = async (req, res) => {
 
 export const getUserPosts: RequestHandler<{ username: string }> = async (req, res) => {
   const query = paginationQuerySchema.parse(req.query);
-  const result = await postService.getUserPosts(req.params.username, query);
+  const result = await postService.getUserPosts(req.params.username, getUserId(req), query);
   res.json(result);
 };
 
 export const getFeed: RequestHandler = async (req, res) => {
   const query = paginationQuerySchema.parse(req.query);
-  const result = await postService.getFeed(query);
+  const result = await postService.getFeed(getUserId(req), query);
   res.json(result);
 };
 
 export const getExplore: RequestHandler = async (req, res) => {
   const query = exploreQuerySchema.parse(req.query);
-  res.json(await postService.getExplore(query));
+  res.json(await postService.getExplore(getUserId(req), query));
 };

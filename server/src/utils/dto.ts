@@ -53,7 +53,7 @@ type PostFields = Pick<
   'id' | 'caption' | 'image' | 'likesCount' | 'commentsCount' | 'createdAt'
 >;
 
-export function toPost(post: PostFields, author: InstanceType<typeof User>) {
+export function toPost(post: PostFields, author: InstanceType<typeof User>, isLiked = false) {
   return {
     id: post.id,
     caption: post.caption,
@@ -67,5 +67,6 @@ export function toPost(post: PostFields, author: InstanceType<typeof User>) {
     commentsCount: post.commentsCount,
     createdAt: post.createdAt,
     author: toUserPreview(author),
+    isLiked,
   };
 }
