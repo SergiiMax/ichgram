@@ -75,6 +75,7 @@ export function toPost(post: PostFields, author: InstanceType<typeof User>, isLi
 export function toComment(
   comment: Pick<InstanceType<typeof Comment>, 'id' | 'text' | 'likesCount' | 'createdAt'>,
   author: InstanceType<typeof User>,
+  isLiked = false,
 ) {
   return {
     id: comment.id,
@@ -82,5 +83,6 @@ export function toComment(
     likesCount: comment.likesCount,
     createdAt: comment.createdAt,
     author: toUserPreview(author),
+    isLiked,
   };
 }

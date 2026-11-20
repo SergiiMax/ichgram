@@ -89,3 +89,10 @@ export async function unlikeComment(commentId: string, userId: string) {
 
   return { liked: false, likesCount: comment?.likesCount ?? 0 };
 }
+
+export async function getLikedCommentIds(userId: string, commentIds: string[]) {
+  const likes = await CommentLike.find({ user: userId, comment: { $in: commentIds } }).select(
+    'comment',
+  );
+  return new Set(likes.map((like) => like.comment.toString()));
+}

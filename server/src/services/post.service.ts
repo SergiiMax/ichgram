@@ -11,6 +11,7 @@ import { toPage } from '../utils/pagination.js';
 import { getLikedPostIds, isPostLikedBy } from './like.service.js';
 import { Like } from '../models/Like.js';
 import { Comment } from '../models/Comment.js';
+import { CommentLike } from '../models/CommentLike.js';
 
 export async function createPost(authorId: string, buffer: Buffer, data: CreatePostInput) {
   const image = await uploadPostImage(buffer);
@@ -66,8 +67,14 @@ export async function deletePost(postId: string, userId: string) {
   const post = await findPostOrThrow(postId);
   assertAuthor(post, userId);
 
+  const commentIds = await Comment.find({ post: post._id }).distinct('_id');
+
   await post.deleteOne();
-  await Promise.all([Like.deleteMany({ post: post._id }), Comment.deleteMany({ post: post._id })]);
+  await Promise.all([
+    Like.deleteMany({ post: post._id }),
+    Comment.deleteMany({ post: post._id }),
+    CommentLike.deleteMany({ comment: { $in: commentIds } }),
+  ]);
 
   await User.updateOne({ _id: userId }, { $inc: { postsCount: -1 } });
 

@@ -8,6 +8,8 @@ import { toPage } from '../utils/pagination.js';
 import type { CreateCommentInput } from '../validators/comment.schema.js';
 import type { PaginationQuery } from '../validators/common.schema.js';
 import { assertPostExists } from './post.service.js';
+import { getLikedCommentIds } from './like.service.js';
+import { CommentLike } from '../models/CommentLike.js';
 
 export async function addComment(postId: string, authorId: string, data: CreateCommentInput) {
   await assertPostExists(postId);
@@ -23,7 +25,11 @@ export async function addComment(postId: string, authorId: string, data: CreateC
   return toComment(comment, author);
 }
 
-export async function getComments(postId: string, { cursor, limit }: PaginationQuery) {
+export async function getComments(
+  postId: string,
+  viewerId: string,
+  { cursor, limit }: PaginationQuery,
+) {
   await assertPostExists(postId);
 
   const filter = cursor ? { post: postId, _id: { $gt: cursor } } : { post: postId };
@@ -33,8 +39,14 @@ export async function getComments(postId: string, { cursor, limit }: PaginationQ
     .populate<{ author: InstanceType<typeof User> }>('author');
 
   const page = toPage(comments, limit);
+  const liked = await getLikedCommentIds(
+    viewerId,
+    page.items.map((comment) => comment.id),
+  );
   return {
-    comments: page.items.map((comment) => toComment(comment, comment.author)),
+    comments: page.items.map((comment) =>
+      toComment(comment, comment.author, liked.has(comment.id)),
+    ),
     nextCursor: page.nextCursor,
   };
 }
@@ -58,6 +70,7 @@ export async function deleteComment(commentId: string, userId: string) {
   }
 
   await comment.deleteOne();
+  await CommentLike.deleteMany({ comment: comment._id });
   await Post.updateOne({ _id: comment.post }, { $inc: { commentsCount: -1 } });
 }
 

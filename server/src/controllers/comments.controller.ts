@@ -10,7 +10,7 @@ export const addComment: RequestHandler<{ id: string }> = async (req, res) => {
 
 export const getComments: RequestHandler<{ id: string }> = async (req, res) => {
   const query = paginationQuerySchema.parse(req.query);
-  res.json(await commentService.getComments(req.params.id, query));
+  res.json(await commentService.getComments(req.params.id, getUserId(req), query));
 };
 export const deleteComment: RequestHandler<{ id: string }> = async (req, res) => {
   await commentService.deleteComment(req.params.id, getUserId(req));
