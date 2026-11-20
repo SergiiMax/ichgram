@@ -60,3 +60,9 @@ export async function deleteComment(commentId: string, userId: string) {
   await comment.deleteOne();
   await Post.updateOne({ _id: comment.post }, { $inc: { commentsCount: -1 } });
 }
+
+export async function assertCommentExists(commentId: string) {
+  if (!mongoose.isValidObjectId(commentId) || !(await Comment.exists({ _id: commentId }))) {
+    throw new AppError(404, 'COMMENT_NOT_FOUND', 'Comment not found');
+  }
+}

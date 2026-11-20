@@ -9,3 +9,11 @@ export const likePost: RequestHandler<{ id: string }> = async (req, res) => {
 export const unlikePost: RequestHandler<{ id: string }> = async (req, res) => {
   res.json(await likeService.unlikePost(req.params.id, getUserId(req)));
 };
+
+export const likeComment: RequestHandler<{ id: string }> = async (req, res) => {
+  res.json(await likeService.likeComment(req.params.id, getUserId(req)));
+};
+
+export const unlikeComment: RequestHandler<{ id: string }> = async (req, res) => {
+  res.json(await likeService.unlikeComment(req.params.id, getUserId(req)));
+};
