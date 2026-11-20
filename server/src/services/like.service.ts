@@ -1,14 +1,10 @@
-import mongoose from 'mongoose';
 import { Post } from '../models/Post.js';
 import { Like } from '../models/Like.js';
 import { assertPostExists } from './post.service.js';
 import { assertCommentExists } from './comment.service.js';
 import { CommentLike } from '../models/CommentLike.js';
 import { Comment } from '../models/Comment.js';
-
-function isDuplicateKeyError(err: unknown) {
-  return err instanceof mongoose.mongo.MongoServerError && err.code === 11000;
-}
+import { isDuplicateKeyError } from '../utils/mongo.js';
 
 export async function likePost(postId: string, userId: string) {
   await assertPostExists(postId);

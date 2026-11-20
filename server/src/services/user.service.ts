@@ -3,6 +3,7 @@ import { AppError } from '../utils/AppError.js';
 import { toProfile, toPublicUser, toUserPreview } from '../utils/dto.js';
 import { logger } from '../utils/logger.js';
 import type { UpdateProfileInput } from '../validators/user.schema.js';
+import { isFollowingUser } from './follow.service.js';
 import { deleteObject, uploadAvatar } from './storage.service.js';
 import lodash from 'lodash';
 
@@ -33,7 +34,10 @@ export async function getProfile(username: string, currentUserId: string) {
     throw new AppError(404, 'USER_NOT_FOUND', 'User not found');
   }
 
-  return toProfile(user, currentUserId);
+  const isMe = user.id === currentUserId;
+  const isFollowing = isMe ? false : await isFollowingUser(currentUserId, user.id);
+
+  return toProfile(user, currentUserId, isFollowing);
 }
 
 export async function updateProfile(userId: string, data: UpdateProfileInput) {

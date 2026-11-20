@@ -22,7 +22,11 @@ export function toPublicUser(user: InstanceType<typeof User>) {
   };
 }
 
-export function toProfile(user: InstanceType<typeof User>, currentUserId: string) {
+export function toProfile(
+  user: InstanceType<typeof User>,
+  currentUserId: string,
+  isFollowing = false,
+) {
   return {
     id: user.id,
     ...lodash.pick(user, [
@@ -37,6 +41,7 @@ export function toProfile(user: InstanceType<typeof User>, currentUserId: string
     ]),
     avatarUrl: user.avatarKey ? getPublicUrl(user.avatarKey) : null,
     isMe: user.id === currentUserId,
+    isFollowing,
   };
 }
 

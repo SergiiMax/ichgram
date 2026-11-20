@@ -10,6 +10,12 @@ import {
 import { validate } from '../middlewares/validate.js';
 import { updateProfileSchema } from '../validators/user.schema.js';
 import { getUserPosts } from '../controllers/posts.controller.js';
+import {
+  followUser,
+  getFollowers,
+  getFollowing,
+  unfollowUser,
+} from '../controllers/follows.controller.js';
 
 export const userRouter = Router();
 
@@ -18,3 +24,7 @@ userRouter.patch('/me', requireAuth, validate(updateProfileSchema), updateMe);
 userRouter.get('/search', requireAuth, searchUsers);
 userRouter.get('/:username', requireAuth, getProfile);
 userRouter.get('/:username/posts', requireAuth, getUserPosts);
+userRouter.post('/:username/follow', requireAuth, followUser);
+userRouter.delete('/:username/follow', requireAuth, unfollowUser);
+userRouter.get('/:username/followers', requireAuth, getFollowers);
+userRouter.get('/:username/following', requireAuth, getFollowing);
