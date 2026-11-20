@@ -9,6 +9,8 @@ import { deletePostImage, uploadPostImage } from './storage.service.js';
 import type { PaginationQuery } from '../validators/common.schema.js';
 import { toPage } from '../utils/pagination.js';
 import { getLikedPostIds, isPostLikedBy } from './like.service.js';
+import { Like } from '../models/Like.js';
+import { Comment } from '../models/Comment.js';
 
 export async function createPost(authorId: string, buffer: Buffer, data: CreatePostInput) {
   const image = await uploadPostImage(buffer);
@@ -65,6 +67,8 @@ export async function deletePost(postId: string, userId: string) {
   assertAuthor(post, userId);
 
   await post.deleteOne();
+  await Promise.all([Like.deleteMany({ post: post._id }), Comment.deleteMany({ post: post._id })]);
+
   await User.updateOne({ _id: userId }, { $inc: { postsCount: -1 } });
 
   void deletePostImage(post.image.key).catch((err) => {
