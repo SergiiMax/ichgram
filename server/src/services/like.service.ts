@@ -5,6 +5,7 @@ import { assertCommentExists } from './comment.service.js';
 import { CommentLike } from '../models/CommentLike.js';
 import { Comment } from '../models/Comment.js';
 import { isDuplicateKeyError } from '../utils/mongo.js';
+import { createNotification, removeNotification } from './notification.service.js';
 
 export async function likePost(postId: string, userId: string) {
   await assertPostExists(postId);
@@ -23,6 +24,15 @@ export async function likePost(postId: string, userId: string) {
     { returnDocument: 'after' },
   );
 
+  if (post) {
+    await createNotification({
+      type: 'like',
+      recipient: post.author.toString(),
+      sender: userId,
+      post: postId,
+    });
+  }
+
   return { liked: true, likesCount: post?.likesCount ?? 0 };
 }
 
@@ -40,6 +50,9 @@ export async function unlikePost(postId: string, userId: string) {
         )
       : await Post.findById(postId);
 
+  if (deletedCount === 1) {
+    await removeNotification({ type: 'like', sender: userId, post: postId });
+  }
   return { liked: false, likesCount: post?.likesCount ?? 0 };
 }
 

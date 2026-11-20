@@ -5,6 +5,7 @@ import { authRouter } from './auth.routes.js';
 import { userRouter } from './users.routes.js';
 import { postsRouter } from './posts.routes.js';
 import { commentRouter } from './comments.routes.js';
+import { notificationRouter } from './notifications.routes.js';
 
 export const apiRouter = Router();
 
@@ -24,3 +25,4 @@ apiRouter.use('/auth', authRouter);
 apiRouter.use('/users', userRouter);
 apiRouter.use('/posts', postsRouter);
 apiRouter.use('/comments', commentRouter);
+apiRouter.use('/notifications', notificationRouter);

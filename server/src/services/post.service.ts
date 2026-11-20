@@ -12,6 +12,8 @@ import { getLikedPostIds, isPostLikedBy } from './like.service.js';
 import { Like } from '../models/Like.js';
 import { Comment } from '../models/Comment.js';
 import { CommentLike } from '../models/CommentLike.js';
+import { getFollowedUserIds } from './follow.service.js';
+import { Notification } from '../models/Notification.js';
 
 export async function createPost(authorId: string, buffer: Buffer, data: CreatePostInput) {
   const image = await uploadPostImage(buffer);
@@ -74,6 +76,7 @@ export async function deletePost(postId: string, userId: string) {
     Like.deleteMany({ post: post._id }),
     Comment.deleteMany({ post: post._id }),
     CommentLike.deleteMany({ comment: { $in: commentIds } }),
+    Notification.deleteMany({ post: post._id }),
   ]);
 
   await User.updateOne({ _id: userId }, { $inc: { postsCount: -1 } });
@@ -140,7 +143,10 @@ export async function getUserPosts(
 }
 
 export async function getFeed(viewerId: string, { cursor, limit }: PaginationQuery) {
-  const filter = cursor ? { _id: { $lt: cursor } } : {};
+  const followedIds = await getFollowedUserIds(viewerId);
+  const authorFilter =
+    followedIds.length > 0 ? { author: { $in: [...followedIds, viewerId] } } : {};
+  const filter = cursor ? { ...authorFilter, _id: { $lt: cursor } } : authorFilter;
 
   const posts = await Post.find(filter)
     .sort({ _id: -1 })

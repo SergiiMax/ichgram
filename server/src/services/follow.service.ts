@@ -6,6 +6,7 @@ import { isDuplicateKeyError } from '../utils/mongo.js';
 import type { PaginationQuery } from '../validators/common.schema.js';
 import { toPage } from '../utils/pagination.js';
 import { toUserPreview } from '../utils/dto.js';
+import { createNotification, removeNotification } from './notification.service.js';
 
 async function findUserOrThrow(username: string) {
   const user = await User.findOne({ username: username.toLowerCase() });
@@ -29,6 +30,7 @@ export async function followUser(followerId: string, username: string) {
       await User.updateOne({ _id: target._id }, { $inc: { followersCount: 1 } }, { session });
       await User.updateOne({ _id: followerId }, { $inc: { followingCount: 1 } }, { session });
     });
+    await createNotification({ type: 'follow', recipient: target.id, sender: followerId });
   } catch (err) {
     if (!isDuplicateKeyError(err)) throw err;
   } finally {
@@ -58,6 +60,7 @@ export async function unfollowUser(followerId: string, username: string) {
     await session.endSession();
   }
 
+  await removeNotification({ type: 'follow', sender: followerId, recipient: target.id });
   const updated = await User.findById(target._id);
   return { isFollowing: false, followersCount: updated?.followersCount ?? 0 };
 }
@@ -123,4 +126,8 @@ export async function getFollowing(
 
 export async function isFollowingUser(viewerId: string, targetId: string) {
   return Boolean(await Follow.exists({ follower: viewerId, following: targetId }));
+}
+
+export async function getFollowedUserIds(userId: string) {
+  return Follow.find({ follower: userId }).distinct('following');
 }

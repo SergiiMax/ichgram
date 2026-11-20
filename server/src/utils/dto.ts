@@ -3,6 +3,7 @@ import { User } from '../models/User.js';
 import { getPostImageUrls, getPublicUrl } from '../services/storage.service.js';
 import type { Post } from '../models/Post.js';
 import type { Comment } from '../models/Comment.js';
+import { Notification } from '../models/Notification.js';
 
 export function toPublicUser(user: InstanceType<typeof User>) {
   return {
@@ -89,5 +90,27 @@ export function toComment(
     createdAt: comment.createdAt,
     author: toUserPreview(author),
     isLiked,
+  };
+}
+
+type NotificationFields = Pick<
+  InstanceType<typeof Notification>,
+  'id' | 'type' | 'read' | 'comment' | 'createdAt'
+>;
+
+export function toNotification(
+  notification: NotificationFields,
+  sender: InstanceType<typeof User>,
+  post: InstanceType<typeof Post> | null,
+  isFollowing = false,
+) {
+  return {
+    id: notification.id,
+    type: notification.type,
+    read: notification.read,
+    createdAt: notification.createdAt,
+    sender: { ...toUserPreview(sender), isFollowing },
+    post: post ? { id: post.id, imageUrl: getPostImageUrls(post.image.key).small } : null,
+    commentId: notification.comment?.toString() ?? null,
   };
 }

@@ -10,12 +10,26 @@ import type { PaginationQuery } from '../validators/common.schema.js';
 import { assertPostExists } from './post.service.js';
 import { getLikedCommentIds } from './like.service.js';
 import { CommentLike } from '../models/CommentLike.js';
+import { createNotification, removeNotification } from './notification.service.js';
 
 export async function addComment(postId: string, authorId: string, data: CreateCommentInput) {
   await assertPostExists(postId);
 
   const comment = await Comment.create({ post: postId, author: authorId, text: data.text });
-  await Post.updateOne({ _id: postId }, { $inc: { commentsCount: 1 } });
+  const post = await Post.findByIdAndUpdate(
+    postId,
+    { $inc: { commentsCount: 1 } },
+    { returnDocument: 'after' },
+  );
+  if (post) {
+    await createNotification({
+      type: 'comment',
+      recipient: post.author.toString(),
+      sender: authorId,
+      post: postId,
+      comment: comment.id,
+    });
+  }
 
   const author = await User.findById(authorId);
   if (!author) {
@@ -71,6 +85,7 @@ export async function deleteComment(commentId: string, userId: string) {
 
   await comment.deleteOne();
   await CommentLike.deleteMany({ comment: comment._id });
+  await removeNotification({ type: 'comment', comment: commentId });
   await Post.updateOne({ _id: comment.post }, { $inc: { commentsCount: -1 } });
 }
 
