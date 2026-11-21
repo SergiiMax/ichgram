@@ -3,8 +3,9 @@ import { Server } from 'socket.io';
 import { env } from '../config/env.js';
 import { socketAuth } from './auth.js';
 import { logger } from '../utils/logger.js';
+import type { AppServer } from './types.js';
 
-let io: Server | null = null;
+let io: AppServer | null = null;
 
 export function initSocket(httpServer: HttpServer) {
   io = new Server(httpServer, {
@@ -14,7 +15,7 @@ export function initSocket(httpServer: HttpServer) {
   io.use(socketAuth);
 
   io.on('connection', (socket) => {
-    const userId: string = socket.data.userId;
+    const userId = socket.data.userId;
     void socket.join(`user:${userId}`);
     logger.info({ userId, socketId: socket.id }, 'Socket connected');
 

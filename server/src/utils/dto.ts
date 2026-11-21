@@ -4,6 +4,8 @@ import { getPostImageUrls, getPublicUrl } from '../services/storage.service.js';
 import type { Post } from '../models/Post.js';
 import type { Comment } from '../models/Comment.js';
 import { Notification } from '../models/Notification.js';
+import type { Conversation } from '../models/Conversation.js';
+import type { Message } from '../models/Message.js';
 
 export function toPublicUser(user: InstanceType<typeof User>) {
   return {
@@ -112,5 +114,45 @@ export function toNotification(
     sender: { ...toUserPreview(sender), isFollowing },
     post: post ? { id: post.id, imageUrl: getPostImageUrls(post.image.key).small } : null,
     commentId: notification.comment?.toString() ?? null,
+  };
+}
+
+type ConversationFields = Pick<
+  InstanceType<typeof Conversation>,
+  'id' | 'lastMessage' | 'updatedAt'
+>;
+
+export function toConversation(
+  conversation: ConversationFields,
+  otherUser: InstanceType<typeof User>,
+) {
+  const { lastMessage } = conversation;
+  return {
+    id: conversation.id,
+    user: toUserPreview(otherUser),
+    lastMessage: lastMessage
+      ? {
+          text: lastMessage.text,
+          senderId: lastMessage.sender.toString(),
+          createdAt: lastMessage.createdAt,
+        }
+      : null,
+    updatedAt: conversation.updatedAt,
+  };
+}
+
+type MessageFields = Pick<
+  InstanceType<typeof Message>,
+  'id' | 'conversation' | 'sender' | 'recipient' | 'text' | 'createdAt'
+>;
+
+export function toMessage(message: MessageFields) {
+  return {
+    id: message.id,
+    conversationId: message.conversation.toString(),
+    senderId: message.sender.toString(),
+    recipientId: message.recipient.toString(),
+    text: message.text,
+    createdAt: message.createdAt,
   };
 }
