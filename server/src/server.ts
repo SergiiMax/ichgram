@@ -5,6 +5,7 @@ import { createServer } from 'node:http';
 import { app } from './app.js';
 import { connectRedis, disconnectRedis } from './config/redis.js';
 import { verifyMailer } from './config/mail.js';
+import { closeSockets, initSocket } from './socket/index.js';
 
 try {
   await connectDB();
@@ -21,6 +22,7 @@ try {
 }
 
 const server = createServer(app);
+initSocket(server);
 server.on('error', (err) => {
   logger.fatal({ err }, 'server error');
   process.exit(1);
@@ -32,6 +34,8 @@ server.listen(env.PORT, () => {
 
 function shutdown(signal: string) {
   logger.info(`${signal} received, shutting down`);
+
+  closeSockets();
 
   server.close(async () => {
     await disconnectDB();
