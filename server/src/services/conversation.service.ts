@@ -8,6 +8,7 @@ import { isDuplicateKeyError } from '../utils/mongo.js';
 import { Message } from '../models/Message.js';
 import { toPage } from '../utils/pagination.js';
 import type { PaginationQuery } from '../validators/common.schema.js';
+import { emitToConversation, emitToUser } from '../socket/emitters.js';
 
 function makeConversationKey(userA: string, userB: string) {
   return [userA, userB].sort().join('_');
@@ -81,4 +82,39 @@ export async function getMessages(
 
   const page = toPage(messages, limit);
   return { messages: page.items.map(toMessage), nextCursor: page.nextCursor };
+}
+
+export async function sendMessage(conversationId: string, senderId: string, text: string) {
+  const conversation = await assertParticipant(conversationId, senderId);
+
+  const recipient = conversation.participants.find((id) => !id.equals(senderId));
+  if (!recipient) {
+    throw new AppError(400, 'INVALID_CONVERSATION', 'Conversation has no recipient');
+  }
+
+  const message = await Message.create({
+    conversation: conversation._id,
+    sender: senderId,
+    recipient,
+    text,
+  });
+
+  conversation.lastMessage = {
+    text: message.text,
+    sender: message.sender,
+    createdAt: message.createdAt,
+  };
+  await conversation.save();
+
+  const dto = toMessage(message);
+  emitToConversation(conversation.id, 'chat:message', dto);
+
+  const update = {
+    conversationId: conversation.id,
+    lastMessage: { text: dto.text, senderId: dto.senderId, createdAt: dto.createdAt },
+  };
+  emitToUser(recipient.toString(), 'conversation:update', update);
+  emitToUser(senderId, 'conversation:update', update);
+
+  return dto;
 }
