@@ -1,11 +1,12 @@
 import { Notification } from '../models/Notification.js';
 import type { Post } from '../models/Post.js';
 import type { User } from '../models/User.js';
+import { emitToUser } from '../socket/emitters.js';
 import { toNotification } from '../utils/dto.js';
 import { logger } from '../utils/logger.js';
 import { toPage } from '../utils/pagination.js';
 import type { PaginationQuery } from '../validators/common.schema.js';
-import { getFollowingIds } from './follow.service.js';
+import { getFollowingIds, isFollowingUser } from './follow.service.js';
 
 type NotificationType = 'like' | 'comment' | 'follow';
 
@@ -21,7 +22,19 @@ export async function createNotification(data: NotificationData) {
   if (data.recipient === data.sender) return;
 
   try {
-    await Notification.create(data);
+    const created = await Notification.create(data);
+
+    const notification = await Notification.findById(created._id)
+      .populate<{ sender: InstanceType<typeof User> }>('sender')
+      .populate<{ post: InstanceType<typeof Post> | null }>('post');
+    if (!notification) return;
+
+    const isFollowing = await isFollowingUser(data.recipient, data.sender);
+    emitToUser(
+      data.recipient,
+      'notification:new',
+      toNotification(notification, notification.sender, notification.post, isFollowing),
+    );
   } catch (err) {
     logger.error({ err }, 'Failed to create notification');
   }
