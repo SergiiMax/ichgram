@@ -4,6 +4,7 @@ import { AppError } from '../../utils/AppError.js';
 import { logger } from '../../utils/logger.js';
 import { objectIdSchema } from '../../validators/common.schema.js';
 import { assertParticipant, sendMessage } from '../../services/conversation.service.js';
+import { conversationRoom } from '../emitters.js';
 
 const sendMessageSchema = z.object({
   conversationId: objectIdSchema,
@@ -30,7 +31,7 @@ export function registerChatHandlers(socket: AppSocket) {
     try {
       const id = objectIdSchema.parse(conversationId);
       await assertParticipant(id, userId);
-      await socket.join(`conversation:${id}`);
+      await socket.join(conversationRoom(id));
       ack?.({ ok: true });
     } catch (err) {
       ack?.({ ok: false, error: toSocketError(err) });
@@ -39,7 +40,7 @@ export function registerChatHandlers(socket: AppSocket) {
 
   socket.on('leaveRoom', async (conversationId: unknown) => {
     if (typeof conversationId === 'string') {
-      await socket.leave(`conversation:${conversationId}`);
+      await socket.leave(conversationRoom(conversationId));
     }
   });
 
