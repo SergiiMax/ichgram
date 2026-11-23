@@ -1,4 +1,5 @@
-import type { z } from 'zod';
+import { z } from 'zod';
+import { objectIdSchema } from '../validators/common.schema.js';
 
 const ERROR_DESCRIPTIONS: Record<number, string> = {
   400: 'Invalid request data',
@@ -10,8 +11,23 @@ const ERROR_DESCRIPTIONS: Record<number, string> = {
   429: 'Too many requests',
 };
 
+export const idParam = z.object({ id: objectIdSchema });
+export const usernameParam = z.object({ username: z.string() });
+
 export function jsonBody(schema: z.ZodType) {
   return { content: { 'application/json': { schema } } };
+}
+
+export function imageForm(field: string, fields: z.ZodObject = z.object({})) {
+  return {
+    content: {
+      'multipart/form-data': {
+        schema: fields.extend({
+          [field]: z.file().mime(['image/jpeg', 'image/png', 'image/webp']),
+        }),
+      },
+    },
+  };
 }
 
 export function errors(...codes: number[]) {

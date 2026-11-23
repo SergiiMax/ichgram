@@ -1,6 +1,12 @@
 import { createDocument } from 'zod-openapi';
 import { ACCESS_COOKIE } from '../utils/cookies.js';
 import { authPaths } from './paths/auth.js';
+import { commentPaths } from './paths/comments.js';
+import { conversationPaths } from './paths/conversations.js';
+import { healthPaths } from './paths/health.js';
+import { notificationPaths } from './paths/notifications.js';
+import { postPaths } from './paths/posts.js';
+import { userPaths } from './paths/users.js';
 
 export const openApiDocument = createDocument({
   openapi: '3.1.0',
@@ -17,6 +23,12 @@ export const openApiDocument = createDocument({
   },
   security: [{ cookieAuth: [] }],
   paths: {
+    ...healthPaths,
     ...authPaths,
+    ...userPaths,
+    ...postPaths,
+    ...commentPaths,
+    ...notificationPaths,
+    ...conversationPaths,
   },
 });
