@@ -10,7 +10,7 @@ import { toPage } from '../utils/pagination.js';
 import type { PaginationQuery } from '../validators/common.schema.js';
 import { emitToConversation, emitToUser } from '../socket/emitters.js';
 
-function makeConversationKey(userA: string, userB: string) {
+export function makeConversationKey(userA: string, userB: string) {
   return [userA, userB].sort().join('_');
 }
 
