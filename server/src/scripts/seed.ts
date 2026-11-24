@@ -22,6 +22,7 @@ import {
   uploadPostImage,
 } from '../services/storage.service.js';
 import { logger } from '../utils/logger.js';
+import { z } from 'zod';
 
 const IMAGES_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'seed-images');
 const PASSWORD = 'Password123';
@@ -43,19 +44,15 @@ const USERS = [
   { username: 'alex.fit', fullName: 'Alex Braun', bio: 'Gym & healthy food 💪' },
 ];
 
-const CAPTIONS = [
-  'Good morning ☀️',
-  'Weekend mood',
-  'Can’t stop laughing 😂',
-  'One of my favourite places',
-  'Just another day',
-  'This made my day',
-  'Throwback 📸',
-  'Who else? 🙋',
-  'Simple things',
-  'Monday again…',
-  '',
-];
+const postSeedsSchema = z.array(
+  z.object({
+    file: z.string().min(1),
+    user: z.string().min(1),
+    caption: z.string().max(2200),
+  }),
+);
+
+type PostSeed = z.infer<typeof postSeedsSchema>[number];
 
 const COMMENTS = [
   'Wow 😍',
@@ -106,6 +103,11 @@ async function readImages(folder: string) {
   return Promise.all(files.map((file) => readFile(path.join(dir, file))));
 }
 
+async function readPostSeeds() {
+  const json = await readFile(path.join(IMAGES_DIR, 'posts', 'posts.json'), 'utf8');
+  return postSeedsSchema.parse(JSON.parse(json));
+}
+
 async function clearDatabase() {
   const [posts, users] = await Promise.all([
     Post.find().select('image'),
@@ -153,28 +155,34 @@ async function createUsers(avatars: Buffer[]) {
   return users;
 }
 
-async function createPosts(users: InstanceType<typeof User>[], images: Buffer[]) {
-  const dates = images
+async function createPosts(users: InstanceType<typeof User>[], seeds: PostSeed[]) {
+  const usersByName = new Map(users.map((user) => [user.username, user]));
+  const ordered = sample(seeds, seeds.length);
+  const dates = ordered
     .map(() => new Date(Date.now() - randomInt(0, 30) * DAY - randomInt(0, DAY)))
     .sort((a, b) => a.getTime() - b.getTime());
   const posts = [];
 
-  for (const [index, buffer] of images.entries()) {
-    const author = users[index % users.length];
+  for (const [index, seed] of ordered.entries()) {
+    const author = usersByName.get(seed.user);
     const date = dates[index];
-    if (!author || !date) continue;
+    if (!author || !date) {
+      logger.warn(`Skipped ${seed.file}: unknown user "${seed.user}"`);
+      continue;
+    }
 
+    const buffer = await readFile(path.join(IMAGES_DIR, 'posts', seed.file));
     const image = await uploadPostImage(buffer);
     posts.push(
       await Post.create({
         _id: objectIdAt(date),
         author: author._id,
-        caption: pick(CAPTIONS),
+        caption: seed.caption,
         image,
         createdAt: date,
       }),
     );
-    logger.info(`Post ${index + 1}/${images.length} uploaded`);
+    logger.info(`Post ${index + 1}/${ordered.length} uploaded`);
   }
 
   return posts;
@@ -189,11 +197,11 @@ async function main() {
 
   await connectDB();
   try {
-    const [avatars, postImages] = await Promise.all([readImages('avatars'), readImages('posts')]);
+    const [avatars, postSeeds] = await Promise.all([readImages('avatars'), readPostSeeds()]);
     await clearDatabase();
 
     const users = await createUsers(avatars);
-    const posts = await createPosts(users, postImages);
+    const posts = await createPosts(users, postSeeds);
     const demo = users[0];
     if (!demo) throw new Error('No users created');
 
