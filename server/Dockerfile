@@ -4,6 +4,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY tsconfig.json ./
 COPY src ./src
+ENV NODE_OPTIONS=--max-old-space-size=1536
 RUN npm run build
 
 FROM node:24-alpine AS runtime
