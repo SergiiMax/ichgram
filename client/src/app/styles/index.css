@@ -1,0 +1,43 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/roboto';
+
+@theme {
+  --font-sans: 'Roboto Variable', system-ui, sans-serif;
+
+  --color-primary: #0095f6;
+  --color-primary-hover: #1877f2;
+  --color-link: #00376b;
+  --color-secondary: #737373;
+  --color-placeholder: #c7c7c7;
+  --color-border: #dbdbdb;
+  --color-surface-input: #fafafa;
+  --color-surface-muted: #efefef;
+  --color-error: #ff0014;
+  --color-bubble-mine: #4d00ff;
+  --color-overlay: rgb(0 0 0 / 0.65);
+  --color-avatar-ring: rgb(0 0 0 / 0.1);
+  --color-gradient-yellow: #f9ce34;
+  --color-gradient-pink: #ee2a7b;
+  --color-gradient-purple: #6228d7;
+
+  --text-*: initial;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.125rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.25rem;
+  --text-lg: 1.25rem;
+  --text-lg--line-height: 1.5625rem;
+  --text-xl: 1.5rem;
+  --text-xl--line-height: 1.75rem;
+
+  --breakpoint-3xl: 120rem;
+  --breakpoint-4xl: 160rem;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-sm text-black antialiased;
+  }
+}
