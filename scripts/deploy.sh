@@ -3,6 +3,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+export BUILDX_NO_DEFAULT_ATTESTATIONS=1
+
 echo "==> git pull"
 git pull --ff-only
 
