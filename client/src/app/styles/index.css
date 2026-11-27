@@ -34,6 +34,7 @@
 
   --breakpoint-3xl: 120rem;
   --breakpoint-4xl: 160rem;
+  --spacing-sidebar: 15.3125rem;
 }
 
 @layer base {
