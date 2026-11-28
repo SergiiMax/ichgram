@@ -13,28 +13,40 @@ import { ProfilePage } from '@/pages/profile';
 import { EditProfilePage } from '@/pages/edit-profile';
 import { PostPage } from '@/pages/post';
 import { NotFoundPage } from '@/pages/not-found';
+import { RequireAuth } from './guards/RequireAuth';
+import { RedirectIfAuth } from './guards/RedirectIfAuth';
 
 export const router = createBrowserRouter([
   {
     element: <AuthLayout />,
     children: [
-      { path: ROUTES.login, element: <LoginPage /> },
-      { path: ROUTES.register, element: <RegisterPage /> },
-      { path: ROUTES.forgotPassword, element: <ForgotPasswordPage /> },
+      {
+        element: <RedirectIfAuth />,
+        children: [
+          { path: ROUTES.login, element: <LoginPage /> },
+          { path: ROUTES.register, element: <RegisterPage /> },
+          { path: ROUTES.forgotPassword, element: <ForgotPasswordPage /> },
+        ],
+      },
       { path: ROUTES.resetPassword, element: <ResetPasswordPage /> },
     ],
   },
   {
-    element: <AppLayout />,
+    element: <RequireAuth />,
     children: [
-      { path: ROUTES.homepage, element: <HomePage /> },
-      { path: ROUTES.explore, element: <ExplorePage /> },
-      { path: ROUTES.messages, element: <MessagesPage /> },
-      { path: ROUTES.conversation, element: <MessagesPage /> },
-      { path: ROUTES.profile, element: <ProfilePage /> },
-      { path: ROUTES.editProfile, element: <EditProfilePage /> },
-      { path: ROUTES.post, element: <PostPage /> },
-      { path: '*', element: <NotFoundPage /> },
+      {
+        element: <AppLayout />,
+        children: [
+          { path: ROUTES.homepage, element: <HomePage /> },
+          { path: ROUTES.explore, element: <ExplorePage /> },
+          { path: ROUTES.messages, element: <MessagesPage /> },
+          { path: ROUTES.conversation, element: <MessagesPage /> },
+          { path: ROUTES.profile, element: <ProfilePage /> },
+          { path: ROUTES.editProfile, element: <EditProfilePage /> },
+          { path: ROUTES.post, element: <PostPage /> },
+          { path: '*', element: <NotFoundPage /> },
+        ],
+      },
     ],
   },
 ]);
