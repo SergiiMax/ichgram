@@ -1,3 +1,4 @@
 npx lint-staged
 npm run typecheck --prefix server
 npm run typecheck --prefix client
+npm run lint:fsd --prefix client
